@@ -5,7 +5,7 @@ jobs:
       - image: electronuserland/builder:wine
     steps:
       - checkout
-      - run: yarn && yarn run build
+      - run: npm && npm run build
       - store_artifacts:
           path: /root/project/build
 
