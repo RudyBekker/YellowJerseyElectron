@@ -27,33 +27,19 @@ function createWindow() {
       nodeIntegration: true,
       devTools: false
     },
-    icon: path.join(__dirname, 'hammer.png')
+    icon: path.join(__dirname, 'YellowJerseyLogo.png')
   });
   windowScreen = win;
-  win.loadURL('https://discover360.app/login');
+  win.loadURL('https://app.yellowjersey.io/login');
   const filter = {
     urls: [
-      "https://discover360.app/login"
+      "https://app.yellowjersey.io/login"
     ]
   }
-  var requestBody = {};
-  session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
-    if (details.uploadData) {
-      const buffer = Array.from(details.uploadData)[0].bytes;
-      let keyValueArray = buffer.toString().split("&");
-      keyValueArray.forEach((keyValue) => {
-        requestBody = JSON.parse(keyValue);
-      })
-      if (requestBody && requestBody.email)
-        store.set('user_email', requestBody.email);
-
-    }
-    callback({ requestHeaders: details.requestHeaders })
-  })
-
+  
   win.webContents.on('did-finish-load', function () {
     let currentURL = win.webContents.getURL();
-    if (currentURL.includes('https://discover360.app/dashboard')) {
+    if (currentURL.includes('https://app.yellowjersey.io/settings')) {
       store.set('isLoggedIn', true);
     }
     if (currentURL.includes('https://mbasic.facebook.com')) {
@@ -173,7 +159,7 @@ function sendAudienDetailToDiscover(message) {
 
 async function loadRedirectUrl(url) {
   let isLoggedIn = store.get('isLoggedIn');
-  if ((url.includes('facebook') || url.includes('setting')) && !isLoggedIn) return windowScreen.loadURL('https://discover360.app/login');
+  if ((url.includes('facebook') || url.includes('setting')) && !isLoggedIn) return windowScreen.loadURL('https://app.yellowjersey.io/login');
   await windowScreen.webContents.executeJavaScript(`let token = window.localStorage.getItem('app-token'); Promise.resolve(token);`)
     .then((token) => {
       if (token) store.set('token', token);

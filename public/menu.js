@@ -1,127 +1,162 @@
-const { app, BrowserWindow, Menu } = require('electron');
-const mainProcess = require('./electron');
-const path = require('path');
-const Store = require('electron-store');
-const storage = require('electron-localstorage');
+const { app, BrowserWindow, Menu } = require("electron");
+const mainProcess = require("./electron");
+const path = require("path");
+const Store = require("electron-store");
+const storage = require("electron-localstorage");
 
 var template = [
-    {
-        label: 'Dashboard', click() {
-            loadWindowUrl('https://discover360.app/dashboard')
-        }
-    },
-    {
-        label: 'Facebook', click() {
-            loadWindowUrl('https://www.facebook.com/groups/feed')
-        }
-    },
-    {
-        label: 'Setting', click() {
-            loadWindowUrl(`file://${path.join(__dirname, '/setting.html')}`);
-        }
-    },
-    {
-        label: 'Quit',
-        submenu: [
-            {
-                label: 'Exit',
-                click() {
-                    app.quit()
-                }
-            }
-        ]
-    }
+  {
+    label: "Dashboard",
+    submenu: [
+      {
+        label: "Admin Dashboard",
+        click() {
+          loadWindowUrl("https://app.yellowjersey.io/settings");
+        },
+      },
+      {
+        label: "Settings",
+        click() {
+          loadWindowUrl("https://app.yellowjersey.io/settings");
+        },
+      },
+    ],
+  },
+  {
+    label: "Email",
+    submenu: [
+      {
+        label: "Gmail",
+        click() {
+          loadWindowUrl("https://accounts.google.com/b/1/AddMailService");
+        },
+      },
+      {
+        label: "Outlook",
+        click() {
+          loadWindowUrl("https://outlook.office365.com/mail/");
+        },
+      },
+      {
+        label: "Back",
+        click() {
+          loadWindowUrl("javascript:history.go(-1)");
+        },
+      },
+    ],
+  },
+  {
+    label: "Quit",
+    submenu: [
+      {
+        label: "Exit",
+        click() {
+          app.quit();
+        },
+      },
+    ],
+  },
 ];
 
-if (process.platform === 'darwin') {
-    template = [
+if (process.platform === "darwin") {
+  template = [
+    {
+      label: app.getName(),
+    },
+    {
+      label: "Dashboard",
+      submenu: [
         {
-            label: app.getName()
+          label: "Admin Dashboard",
+          click() {
+            loadWindowUrl("https://app.yellowjersey.io/settings");
+          },
         },
         {
-            label: 'Dashboard',
-            submenu: [{
-                label: 'dashboard',
-                click() {
-                    loadWindowUrl('https://discover360.app/dashboard')
-                }
-            }]
+          label: "Settings",
+          click() {
+            loadWindowUrl("https://app.yellowjersey.io/settings");
+          },
+        },
+      ],
+    },
+    {
+      label: "Email",
+      submenu: [
+        {
+          label: "Gmail",
+          click() {
+            loadWindowUrl("https://accounts.google.com/b/1/AddMailService");
+          },
         },
         {
-            label: 'Facebook',
-            submenu: [{
-                label: 'facebook',
-                click() {
-                    loadWindowUrl('https://www.facebook.com/groups/feed')
-                }
-            }]
+          label: "Outlook",
+          click() {
+            loadWindowUrl("https://outlook.office365.com/mail/");
+          },
         },
         {
-            label: 'Setting',
-            submenu: [{
-                label: 'setting',
-                click() {
-                    loadWindowUrl('http://localhost:3000/setting');
-                }
-            }]
+          label: "Back",
+          click() {
+            window.history.back();
+          },
+        },
+      ],
+    },
+    {
+      label: "Quit",
+      submenu: [
+        {
+          label: "Exit",
+          click() {
+            app.quit();
+          },
+        },
+      ],
+    },
+    {
+      label: "Edit",
+      submenu: [
+        {
+          label: "Undo",
+          accelerator: "CmdOrCtrl+Z",
+          selector: "undo:",
         },
         {
-            label: "Edit",
-            submenu: [
-                {
-                    label: "Undo",
-                    accelerator: "CmdOrCtrl+Z",
-                    selector: "undo:"
-                },
-                {
-                    label: "Redo",
-                    accelerator: "Shift+CmdOrCtrl+Z",
-                    selector: "redo:"
-                },
-                {
-                    type: "separator"
-                },
-                {
-                    label: "Cut",
-                    accelerator: "CmdOrCtrl+X",
-                    selector: "cut:"
-                },
-                {
-                    label: "Copy",
-                    accelerator: "CmdOrCtrl+C",
-                    selector: "copy:"
-                },
-                {
-                    label: "Paste",
-                    accelerator: "CmdOrCtrl+V",
-                    selector: "paste:"
-                },
-                {
-                    label: "Select All",
-                    accelerator: "CmdOrCtrl+A",
-                    selector: "selectAll:"
-                }
-            ]
+          label: "Redo",
+          accelerator: "Shift+CmdOrCtrl+Z",
+          selector: "redo:",
         },
         {
-            label: 'Quit',
-            submenu: [
-                {
-                    label: 'Exit',
-                    click() {
-                        app.quit()
-                    }
-                }
-            ]
-        }
-    ];
+          type: "separator",
+        },
+        {
+          label: "Cut",
+          accelerator: "CmdOrCtrl+X",
+          selector: "cut:",
+        },
+        {
+          label: "Copy",
+          accelerator: "CmdOrCtrl+C",
+          selector: "copy:",
+        },
+        {
+          label: "Paste",
+          accelerator: "CmdOrCtrl+V",
+          selector: "paste:",
+        },
+        {
+          label: "Select All",
+          accelerator: "CmdOrCtrl+A",
+          selector: "selectAll:",
+        },
+      ],
+    },
+  ];
 }
-
 
 function loadWindowUrl(url) {
-    return mainProcess.loadRedirectUrl(url);
+  return mainProcess.loadRedirectUrl(url);
 }
 
-
 module.exports = Menu.buildFromTemplate(template);
-
