@@ -1,6 +1,7 @@
 const path = require('path');
 const Store = require('electron-store');
 const os = require('os')
+const fetch = require('node-fetch');
 
 const { app, BrowserWindow, Menu, session } = require('electron');
 const isDev = require('electron-is-dev');
@@ -17,32 +18,52 @@ function createWindow() {
   // win.loadFile("index.html");
 
   var win = new BrowserWindow({
-    width: 1800,
-    height: 1800,
-    //minWidth: 1281,
-    //minHeight: 800,
+    width: 1281,
+    height: 800,
+    minWidth: 1281,
+    minHeight: 800,
     webPreferences: {
       preload: `${__dirname}/renderer.js`,
-      nodeIntegration: true
+      nodeIntegration: true,
+      devTools: false
     },
     icon: path.join(__dirname, 'hammer.png')
   });
   windowScreen = win;
-  win.loadURL('https://dash.yellowjersey.dev/admin/authentication');
+  win.loadURL('https://discover360.app/login');
+  const filter = {
+    urls: [
+      "https://discover360.app/login"
+    ]
+  }
+  var requestBody = {};
+  session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
+    if (details.uploadData) {
+      const buffer = Array.from(details.uploadData)[0].bytes;
+      let keyValueArray = buffer.toString().split("&");
+      keyValueArray.forEach((keyValue) => {
+        requestBody = JSON.parse(keyValue);
+      })
+      if (requestBody && requestBody.email)
+        store.set('user_email', requestBody.email);
+
+    }
+    callback({ requestHeaders: details.requestHeaders })
+  })
 
   win.webContents.on('did-finish-load', function () {
     let currentURL = win.webContents.getURL();
-    if (currentURL.includes('https://dash.yellowjersey.dev/admin/')) {
+    if (currentURL.includes('https://discover360.app/dashboard')) {
       store.set('isLoggedIn', true);
     }
-    if (currentURL.includes('mbasic.facebook.com')) {
-      if (currentURL.includes('facebook.com/groups'))
+    if (currentURL.includes('https://mbasic.facebook.com')) {
+      if (currentURL.includes('/groups'))
         facebookController.getFacebookGroupPosts(windowScreen);
-      else windowScreen.webContents.executeJavaScript(`window.localStorage.removeItem('postList');`)
+      else windowScreen.webContents.executeJavaScript(`sessionStorage.removeItem('isStart'); sessionStorage.removeItem('postList')`)
+
     }
 
     if (currentURL.includes('www.facebook.com') || currentURL.includes('web.facebook.com')) {
-      console.log('currentURL', currentURL)
       facebookController.getFacebookMembersDetail(windowScreen, session, store);
     }
   });
@@ -55,15 +76,19 @@ function createWindow() {
     if (message && message.includes('stopExtractor-->')) {
       message = message.replace('stopExtractor-->', '')
       await sendAudienDetailToDiscover(message);
-     
+    }
+
+    if (message && message.includes('totalPostExtractor-->')) {
+      message = message.replace('totalPostExtractor-->', '')
+      await sendPostDetailToDiscover(message);
     }
     // console.log('renderer console.%s: %s', ['debug', 'info', 'warn', 'error'][level + 1], message);
   });
 
   // Open the DevTools.
-  if (isDev) {
-    win.webContents.openDevTools({ mode: 'detach' });
-  }
+  // if (isDev) {
+  //   win.webContents.openDevTools({ mode: 'detach' });
+  // }
 }
 
 
@@ -80,10 +105,8 @@ app.whenReady().then(createWindow);
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    store.set('isLoggedIn', false);
-    app.quit();
-  }
+  store.set('isLoggedIn', false);
+  app.quit();
 });
 
 
@@ -93,34 +116,67 @@ app.on('activate', () => {
   }
 });
 
-function sendAudienDetailToDiscover(message) {
-  console.log(JSON.parse(message));
+function sendPostDetailToDiscover(message) {
   let token = store.get('token');
-  var options = { method: 'POST',
-  url: 'https://discover360.app/api/sources/create',
-  headers: 
-   { 
-     authorization: 'Bearer xcDwA6JWOozc9stCAcgjjlDMPMlrBlhknoODGYJN',
-     'content-type': 'application/json' },
-  body: JSON.parse(message),
-  json: true };
+  var options = {
+    method: 'POST',
+    url: 'https://discover360.app/api/groups',
+    headers:
+    {
+      authorization: 'Bearer ' + token,
+      'content-type': 'application/json'
+    },
+    body: message ? JSON.parse(message) : {},
+    json: true
+  };
 
-request(options, function (error, response, body) {
-  if (error) throw new Error(error);
+  request(options, function (error, response, body) {
+    if (error) throw new Error(error);
 
-  console.log(body);
-});
+    console.log(body);
+  });
+}
+
+function sendAudienDetailToDiscover(message) {
+  let token = store.get('token');
+  let user_email = store.get('user_email');
+  var options = {
+    method: 'POST',
+    url: 'https://discover360.app/api/sources/create',
+    headers:
+    {
+      authorization: 'Bearer ' + token,
+      'content-type': 'application/json'
+    },
+    body: JSON.parse(message),
+    json: true
+  };
+
+  request(options, function (error, response, body) {
+    if (error) throw new Error(error);
+
+    console.log(body);
+  });
+  if (user_email) message.user_email = user_email;
+  return fetch('https://275331af05cc8b5e03a513cfcb29d134.m.pipedream.net', {
+    method: "POST",
+    headers: {
+      authorization: 'Bearer ' + token,
+      'content-type': 'application/json'
+    },
+    body: message
+  }).then(res => res.text())
+    .then(body => console.log(body));
+
 
 }
 
-function loadRedirectUrl(url) {
+async function loadRedirectUrl(url) {
   let isLoggedIn = store.get('isLoggedIn');
-  windowScreen.webContents.executeJavaScript(`let token = window.localStorage.getItem('app-token'); Promise.resolve(token);`)
+  if ((url.includes('facebook') || url.includes('setting')) && !isLoggedIn) return windowScreen.loadURL('https://discover360.app/login');
+  await windowScreen.webContents.executeJavaScript(`let token = window.localStorage.getItem('app-token'); Promise.resolve(token);`)
     .then((token) => {
-      if(token) store.set('token', token);
-      if (url.includes('facebook') && !isLoggedIn) {
-        return windowScreen.loadURL('https://discover360.app/login');
-      }
+      if (token) store.set('token', token);
       return windowScreen.loadURL(url);
     })
     .catch((error) => console.log(error));

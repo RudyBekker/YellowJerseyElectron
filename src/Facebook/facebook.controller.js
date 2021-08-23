@@ -8,14 +8,47 @@ var token = ""
 
 
 function getFacebookGroupPosts(windowScreen) {
-    setTimeout(() => {
-        windowScreen.webContents.executeJavaScript(`
+    windowScreen.webContents.executeJavaScript(`
+    window.$ = document.querySelectorAll.bind(document);
+
+    var groupUrl = '';
+    var setTimeoutId;
+    var postList = sessionStorage.getItem('postList');
+    postList = postList ? JSON.parse(postList) : [];
+    var extractorIsStart = sessionStorage.getItem('isStart');
+    console.log(extractorIsStart)
+    if(extractorIsStart) groupPostExtractorStart();
+
+    if($('div.bp') && $('div.bp').length && !document.getElementById('hammer')){
+
+        var groupPostExtractor = document.createElement("img");
+        groupPostExtractor.setAttribute('src','https://img.icons8.com/emoji/452/hammer-and-pick.png');
+        groupPostExtractor.setAttribute('width','25px');
+        groupPostExtractor.setAttribute('id','hammer');
+        groupPostExtractor.setAttribute('height','25px');
+        groupPostExtractor.style['margin-bottom'] = '-6px';
+        groupPostExtractor.style['margin-left'] = '5px';
+        $('div.bp')[0].append(groupPostExtractor);
+
+        const postElement = document.getElementById('hammer');
+
+        if (postElement && postElement.getAttribute('listener') !== 'true') {
+            postElement.addEventListener('click', function(event){
+                sessionStorage.removeItem('postList')
+                if(sessionStorage.getItem('isStart')){
+                    totalPostDetails(postList);
+                    clearTimeout(setTimeoutId);
+                }else{
+                    sessionStorage.setItem('isStart',true);
+                    groupPostExtractorStart();
+                }
+            })
+        }   
+    }
+
+
+    function groupPostExtractorStart(){
         window.$ = document.querySelectorAll.bind(document)
-        var groupUrl = '';
-        var postList = [];
-        postList = window.localStorage.getItem('postList');
-        postList = postList ? JSON.parse(postList) : [];
-        console.log('post-->',postList);
         let getAllArticlesList = $('div#m_group_stories_container>section');
         if (getAllArticlesList.length) getAllArticlesList = getAllArticlesList[0].getElementsByTagName('article');
         for (let i = 0; i <= getAllArticlesList.length - 1; i++) {
@@ -48,14 +81,57 @@ function getFacebookGroupPosts(windowScreen) {
             }
         }
         console.log(postList);
-        setTimeout(() => {
-            window.localStorage.setItem('postList', JSON.stringify(postList));
-           
+        openProgressModal(postList);
+        setTimeoutId = setTimeout(() => {
+            sessionStorage.setItem('postList', JSON.stringify(postList));
             let seeMorePosts = Array.prototype.slice.call(document.getElementsByTagName('a')).filter(el => el.textContent.includes('See More'));
             console.log('seemoreposts-->', seeMorePosts);
-            if (seeMorePosts.length) seeMorePosts[0].click();
-            // else totalPostDetails(postList)
+            if (seeMorePosts.length && postList.length < 1000) seeMorePosts[0].click();
+            else totalPostDetails(postList)
         }, 20000);
+    }
+
+    function openProgressModal(postList){
+        var createProgressElement = document.createElement('div');
+        createProgressElement.innerHTML = '<div class="modal" id="progress">'
+         + '<div class="header">'
+         + '  <h3 id="title">Processing...</h3>'
+         + '<a id="hidePopup" class="cancel">x</a>'
+         + '</div>'
+         + '<div class="content">'
+         + '  <form>'
+         + '    <div>'
+         + '      <span class="progress-status" id="progressTask" for="cars"></span>'
+         + '    </div>'
+         + '    <div class="btns">'
+         + '      <button id="cancelProgress">Abort</button>'
+         + '      <button class="cancel" id="viewProcessing" style="background: #6b6b6b;border: 1px solid #6b6b6b;">Processing...</button>'
+         + '    </div>'
+         + '  </form>'
+         + '</div>'
+         + '</div>'
+
+         document.body.appendChild(createProgressElement);
+         var progressSheet = document.createElement('style')
+         progressSheet.innerHTML = ".main{   width: 100%;   height: 100vh;   text-align: center; } .main div{   width: 400px;   height: 400px;   margin:0 auto;   text-align: center; } .main div button{   top: 500px;   height: 30px;   margin: 0 auto; } .container{   display: none;   width: 100%;   height: 100vh;   position: fixed;   opacity: 0.9;   background: #222;   z-index: 40000;   top:0;   left: 0;   overflow: hidden;   animation-name: fadeIn_Container;   animation-duration: 1s;    } .modal{   display:none;   top: 0;   min-width: 250px;   width: 80%;   height: auto;   margin: 0 auto;   position: fixed;   z-index: 40001;   background: #fff;   border-radius: 10px;   box-shadow: 0px 0px 10px #000;   margin-top: 30px;   margin-left: 10%;   animation-name: fadeIn_Modal;   animation-duration: 0.8s; } .header{   width: 100%;   height: auto;   border-radius: 10px 10px 0px 0px;   position: relative; } .header h3{       margin: 10px 30px; } .header a{   text-decoration: none;   float: right;   line-height: 70px;   margin-right: 20px;   color: #aaa;   position: absolute;   right: 0px;   top: 0px;   padding: 12px; } .content{   width: 100%;   height: auto; } form{   margin-top: 20px; } form label{   display: block;   margin-left: 12%;   margin-top: 10px;   font-family: sans-serif;   font-size: 1rem; } form input{   display: block;   width: 75%;   margin-left: 12%;   margin-top: 10px;   border-radius: 3px;   font-family: sans-serif; } #first_label{   padding-top: 30px; } #second_label{   padding-top: 25px; } .footer{   width: 100%;   height: auto;   border-radius: 0px 0px 10px 10px;   text-align: left; } .fotter button{   float: right;   margin-right: 10px;   margin-top: 18px;   text-decoration: none;  } /****MEDIA QUERIES****/ @media screen and (min-width: 600px){   .modal{     width: 500px;     height: auto;     margin-left: calc(50vw - 250px);     margin-top: calc(50vh - 150px);   }   .header{     width: 100%;     height: auto;   }   .header a{     line-height: 0px;     margin-right: 10px;   }   .content{     width: 100%;     height: auto;   }   form label{     margin-left: 0px;     margin-top: 10px;     margin-bottom: 10px;   }   form input{     width: 75%;     margin-left: 0%;     margin-top: 10px;   }   #first_label{     padding-top: 0px;   }   #second_label{     padding-top: 0px;   }   .footer{     width: 100%;     height: auto;      }   .footer a{      color: #000;   text-align: left;       display: inline-block;     padding: 0px 30px 24px;   } } /*LARGE SCREEN*/ @media screen and (min-width: 1300px){ } /****ANIMATIONS****/ @keyframes fadeIn_Modal {   from{     opacity: 0;   }   to{     opacity: 1;   } } @keyframes fadeIn_Container {   from{     opacity: 0;   }   to{     opacity: 0.9;   } } form{   margin: 20px 30px; } form select{       width: 100%;     height: 35px; } form .src-cls{   width: 100%;   height: 30px;   border: 1px solid #000;   font-size: 15px; } .btns{   display: inline-flex;     width: 100%;     margin-top: 17px; } form .btns button{   width: 50%;   height: 35px;   text-align: center;   border-radius: 3px;   border: 1px solid #000; } form .btns button:nth-child(2){   background: #000;   color: #fff;   margin-left: 5px; } form .btns button:nth-child(1){   background: #fff;   color: #000;   margin-right: 5px;    } /*progress bar*/ .progress-status{   background: rgba(0, 0, 255, 0.21);     font-size: 14px;     display: inline-block;     padding: 1px 8px;     border: 1px solid rgba(7, 19, 171, 1);     border-radius: 16px;     color: #0713ab; } .progress-percent{   text-align: right;   font-size: 14px;   display: inline-block;   color: #0713ab;   float: right; } .meter {    height: 10px;   position: relative;   background: #cac8fd;   border-radius: 5px;   padding: 0px;   box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);       margin-top: 9px; } .meter > span {   display: block;   height: 100%;   border-top-right-radius: 8px;   border-bottom-right-radius: 8px;   border-top-left-radius: 20px;   border-bottom-left-radius: 20px;   background-color: rgb(31 80 171);   background-image: linear-gradient(     center bottom,     rgb(43,194,83) 37%,     rgb(84,240,84) 69%   );   box-shadow:      inset 0 2px 9px  rgba(255,255,255,0.3),     inset 0 -2px 6px rgba(0,0,0,0.4);   position: relative;   overflow: hidden; }";
+         
+         document.body.appendChild(progressSheet);
+         let openProgressModel = document.getElementById('progress')
+         openProgressModel.style.display = "block";
+         document.getElementById('cancelProgress').style.cursor = "pointer";
+         document.getElementById('hidePopup').addEventListener('click',function(event){
+            event.preventDefault();
+            openProgressModel.style.display = 'none';
+            window.location.reload();
+        })   
+        
+        let progressTaskElement = document.getElementById('progressTask');
+        progressTaskElement.innerText = "Task in progress: " + postList.length + " Posts Scanned"
+         document.getElementById('cancelProgress').addEventListener('click',function(event){
+             event.preventDefault();
+             totalPostDetails(postList);
+         })
+    }
 
         function totalPostDetails(posts) {
             let postRequests;
@@ -65,14 +141,30 @@ function getFacebookGroupPosts(windowScreen) {
                     groupUrl: groupUrl,
                     post: posts
                 }
-                sendPostsListDataToServer(postRequests);
-            }
-            chrome.storage.local.remove('postList');
-            console.log('totalPostRequests->', postRequests);
+            }            
+            console.log('totalPostExtractor-->', JSON.stringify(postRequests));
+            scrappedPostDataCompleted(posts)
         }
 
-       `)
-    }, 600)
+        function scrappedPostDataCompleted(posts){
+            clearTimeout(setTimeoutId);
+            document.getElementById('title').innerText = "Done";
+            let progressTaskElement = document.getElementById('progressTask');
+            progressTaskElement.innerText = "Task is completed: "+ posts.length +" Posts Scanned";
+            progressTaskElement.style.background = "#DEE9FF";
+            let viewProcessing = document.getElementById('viewProcessing');
+            document.getElementById('cancelProgress').style.display = "none";
+            viewProcessing.innerText = "View groups";
+            viewProcessing.style.background = "";
+            viewProcessing.style.cursor = "pointer";
+            viewProcessing.style['margin-left'] = "25%";
+            viewProcessing.addEventListener('click', function(event){
+                event.preventDefault();
+                window.location.href = "https://discover360.app/groups";
+            })
+        }
+        
+    `)
 }
 
 function facebookGroupPostPageLoaded(windowScreen, token) {
@@ -85,30 +177,30 @@ function facebookGroupPostPageLoaded(windowScreen, token) {
             'Authorization': 'Bearer ' + token,
             'Content-Type': 'application/json',
         }
-    }).then(response => response.json())
-        .then((projectList) => {
+    })
+        .then(response => response.json())
+        .then(async (projectList) => {
             console.log('pro->', projectList)
-            addIconsScript(windowScreen);
-            if (projectList && projectList.data && projectList.data.length)
-                addProjectListInPopup(projectList.data, windowScreen);
-        });
+            if (projectList && projectList.data && projectList.data.length){
+                await addIconsScript(windowScreen);
+                return addProjectListInPopup(projectList.data, windowScreen);            
+            }
+
+
+        })
+        .catch((error) => console.log(error));
 
 
 }
 
-async function addProjectListInPopup(projectList, windowScreen) {
+function addProjectListInPopup(projectList, windowScreen) {
     if (!projectList) return;
-    await windowScreen.webContents.executeJavaScript(`
+    return windowScreen.webContents.executeJavaScript(`
     window.$ = document.querySelectorAll.bind(document);
     var projectList = ${projectList ? JSON.stringify(projectList) : false};
     console.log('token',projectList);
     var selectedProject = "";
     var sourceName="";
-
-    function openTokenIsNotSavedPoupup(){
-        console.log('toke-->')
-    }
-
 
     function closeProjectModal(event){
         event.preventDefault();
@@ -184,7 +276,6 @@ async function addProjectListInPopup(projectList, windowScreen) {
 
     function openSourcePopup(event){
       event.preventDefault();
-      console.log('test');
       var createSourceModal = document.createElement('div');
       createSourceModal.innerHTML = '<div class="modal" id="source">'
       + '  <div class="header">'
@@ -247,10 +338,58 @@ async function addProjectListInPopup(projectList, windowScreen) {
         groupURL: "",
         members: [],
     };
+
+    openProgressPopup = () => {
+        var createProgressElement = document.createElement('div');
+        createProgressElement.innerHTML = '<div class="modal" id="progress">'
+         + '<div class="header">'
+         + '  <h3 id="title">Processing...</h3>'
+         + '<a id="hidePopup" class="cancel">x</a>'
+         + '</div>'
+         + '<div class="content">'
+         + '  <form>'
+         + '    <div>'
+         + '      <span class="progress-status" id="progressTask" for="cars"></span>'
+         + '      <span class="progress-percent" id="progressPercent" for="cars">0%</span>'
+         + '    </div>'
+         + '    <div class="meter">'
+         + '      <span id="progressBar" style="width: 0%"></span>'
+         + '    </div>'
+         + '    <div class="btns">'
+         + '      <button id="cancelProgress">Abort</button>'
+         + '      <button class="cancel" id="viewProcessing" style="background: #6b6b6b;border: 1px solid #6b6b6b;">Processing...</button>'
+         + '    </div>'
+         + '  </form>'
+         + '</div>'
+         + '</div>'
+
+         document.body.appendChild(createProgressElement);
+         var progressSheet = document.createElement('style')
+         progressSheet.innerHTML = ".main{   width: 100%;   height: 100vh;   text-align: center; } .main div{   width: 400px;   height: 400px;   margin:0 auto;   text-align: center; } .main div button{   top: 500px;   height: 30px;   margin: 0 auto; } .container{   display: none;   width: 100%;   height: 100vh;   position: fixed;   opacity: 0.9;   background: #222;   z-index: 40000;   top:0;   left: 0;   overflow: hidden;   animation-name: fadeIn_Container;   animation-duration: 1s;    } .modal{   display:none;   top: 0;   min-width: 250px;   width: 80%;   height: auto;   margin: 0 auto;   position: fixed;   z-index: 40001;   background: #fff;   border-radius: 10px;   box-shadow: 0px 0px 10px #000;   margin-top: 30px;   margin-left: 10%;   animation-name: fadeIn_Modal;   animation-duration: 0.8s; } .header{   width: 100%;   height: auto;   border-radius: 10px 10px 0px 0px;   position: relative; } .header h3{       margin: 10px 30px; } .header a{   text-decoration: none;   float: right;   line-height: 70px;   margin-right: 20px;   color: #aaa;   position: absolute;   right: 0px;   top: 0px;   padding: 12px; } .content{   width: 100%;   height: auto; } form{   margin-top: 20px; } form label{   display: block;   margin-left: 12%;   margin-top: 10px;   font-family: sans-serif;   font-size: 1rem; } form input{   display: block;   width: 75%;   margin-left: 12%;   margin-top: 10px;   border-radius: 3px;   font-family: sans-serif; } #first_label{   padding-top: 30px; } #second_label{   padding-top: 25px; } .footer{   width: 100%;   height: auto;   border-radius: 0px 0px 10px 10px;   text-align: left; } .fotter button{   float: right;   margin-right: 10px;   margin-top: 18px;   text-decoration: none;  } /****MEDIA QUERIES****/ @media screen and (min-width: 600px){   .modal{     width: 500px;     height: auto;     margin-left: calc(50vw - 250px);     margin-top: calc(50vh - 150px);   }   .header{     width: 100%;     height: auto;   }   .header a{     line-height: 0px;     margin-right: 10px;   }   .content{     width: 100%;     height: auto;   }   form label{     margin-left: 0px;     margin-top: 10px;     margin-bottom: 10px;   }   form input{     width: 75%;     margin-left: 0%;     margin-top: 10px;   }   #first_label{     padding-top: 0px;   }   #second_label{     padding-top: 0px;   }   .footer{     width: 100%;     height: auto;      }   .footer a{      color: #000;   text-align: left;       display: inline-block;     padding: 0px 30px 24px;   } } /*LARGE SCREEN*/ @media screen and (min-width: 1300px){ } /****ANIMATIONS****/ @keyframes fadeIn_Modal {   from{     opacity: 0;   }   to{     opacity: 1;   } } @keyframes fadeIn_Container {   from{     opacity: 0;   }   to{     opacity: 0.9;   } } form{   margin: 20px 30px; } form select{       width: 100%;     height: 35px; } form .src-cls{   width: 100%;   height: 30px;   border: 1px solid #000;   font-size: 15px; } .btns{   display: inline-flex;     width: 100%;     margin-top: 17px; } form .btns button{   width: 50%;   height: 35px;   text-align: center;   border-radius: 3px;   border: 1px solid #000; } form .btns button:nth-child(2){   background: #000;   color: #fff;   margin-left: 5px; } form .btns button:nth-child(1){   background: #fff;   color: #000;   margin-right: 5px;    } /*progress bar*/ .progress-status{   background: rgba(0, 0, 255, 0.21);     font-size: 14px;     display: inline-block;     padding: 1px 8px;     border: 1px solid rgba(7, 19, 171, 1);     border-radius: 16px;     color: #0713ab; } .progress-percent{   text-align: right;   font-size: 14px;   display: inline-block;   color: #0713ab;   float: right; } .meter {    height: 10px;   position: relative;   background: #cac8fd;   border-radius: 5px;   padding: 0px;   box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);       margin-top: 9px; } .meter > span {   display: block;   height: 100%;   border-top-right-radius: 8px;   border-bottom-right-radius: 8px;   border-top-left-radius: 20px;   border-bottom-left-radius: 20px;   background-color: rgb(31 80 171);   background-image: linear-gradient(     center bottom,     rgb(43,194,83) 37%,     rgb(84,240,84) 69%   );   box-shadow:      inset 0 2px 9px  rgba(255,255,255,0.3),     inset 0 -2px 6px rgba(0,0,0,0.4);   position: relative;   overflow: hidden; }";
+         
+         document.body.appendChild(progressSheet);
+         let openProgressModel = document.getElementById('progress')
+         openProgressModel.style.display = "block";
+         document.getElementById('cancelProgress').style.cursor = "pointer";
+         document.getElementById('hidePopup').addEventListener('click',function(event){
+            event.preventDefault();
+            openProgressModel.style.display = 'none';
+            window.location.reload();
+        })   
+
+         document.getElementById('cancelProgress').addEventListener('click',function(event){
+             event.preventDefault();
+             stopExtrator();
+         })
+    }
+
+
+
     const startScraping = () => {
         // Don't stop extractor until we get last member or user stops extractor
         forceStopFetching = false;
-
+        openProgressPopup();
+        
         // Initialise the scraped data object
         scrappedData = {
             groupName: "",
@@ -276,6 +415,9 @@ async function addProjectListInPopup(projectList, windowScreen) {
         console.log('scrappedData->',scrappedData.totalMembers)
         scrappedData.groupURL = document.URL.split("/").slice(0, 5).join("/");
 
+
+        let progressTaskElement = document.getElementById('progressTask');
+        progressTaskElement.innerText = "TASK IN PROGRESS: 0 of "+scrappedData.totalMembers;
         
         // If Total members is less than 999, Start fetchin with lesser members per request
         scrappedData.totalMembers < 999
@@ -295,6 +437,7 @@ async function addProjectListInPopup(projectList, windowScreen) {
         
         scrollWait = setTimeout(() => {
             // If we get request headers start fetching
+            console.log('frce-->',forceStopFetching)
             if(forceStopFetching) return;
             if(+scrappedData.totalMembers > scrappedData.members.length){
                 fetchNext();
@@ -312,8 +455,8 @@ async function addProjectListInPopup(projectList, windowScreen) {
 
 
     // Fetch next bunch of members
-    const fetchNext = () => {
-        let formDataBody = window.localStorage.getItem('variable');
+    var fetchNext = () => {
+        let formDataBody = variable;
         if(formDataBody) formDataBody = JSON.parse(formDataBody);
         let keysArray = Object.keys(formDataBody)
         keysArray.forEach((key)=>{
@@ -378,11 +521,12 @@ async function addProjectListInPopup(projectList, windowScreen) {
                     console.log(scrappedData.members);
 
                     if(graphqlResult.new_members && graphqlResult.new_members.page_info && !graphqlResult.new_members.page_info.has_next_page){
+                        progressBarUpdate();
                         stopExtrator();
-                    }else{ 
-                        console.log('fetch');
+                    }else if(!forceStopFetching){ 
+                        console.log('fetch--->');
+                        progressBarUpdate();
                         fetchNext();
-                        // setTimeout(()=>{  console.log('fetch'); }, 1000)
                     }         
                     
                 }
@@ -403,9 +547,11 @@ async function addProjectListInPopup(projectList, windowScreen) {
                     console.log(scrappedData.members);
 
                     if(graphqlResult.new_forum_members && graphqlResult.new_forum_members.page_info && !graphqlResult.new_forum_members.page_info.has_next_page){
+                        progressBarUpdate();
                         stopExtrator();
                     }else{ 
-                        console.log('fetch');
+                        console.log('fetch--->Tests');
+                        progressBarUpdate();
                         fetchNext();
                     }    
                 }
@@ -413,11 +559,27 @@ async function addProjectListInPopup(projectList, windowScreen) {
             })
             .catch((err) => {
                 console.log('err-->',err);
-                stopExtrator();
+                fetchNext();
                 return;
             });
     };
 
+    progressBarUpdate = () => {
+        if(scrappedData && scrappedData.members){
+            let scrappedMembersCount = scrappedData.members.length;
+            let totalMembersCount = +scrappedData.totalMembers;
+            let progressTaskElement = document.getElementById('progressTask');
+            progressTaskElement.innerText = "TASK IN PROGRESS: "+ scrappedMembersCount +" of "+totalMembersCount;
+            let percentage = (scrappedMembersCount / totalMembersCount) * 100;
+            console.log('per',percentage);
+            percentage = percentage < 90 ? Math.round(percentage) + '%' : 100 + '%';
+            let percentText = document.getElementById('progressPercent');
+            percentText.innerText = percentage;
+            let progressBarElement = document.getElementById('progressBar');
+            progressBarElement.style.width = percentage;             
+
+        }
+    }
 
             
         
@@ -425,51 +587,33 @@ async function addProjectListInPopup(projectList, windowScreen) {
         forceStopFetching = true;
         scrappedData.total_scrapped_member = scrappedData.members.length;
         var total_members = +scrappedData.totalMembers;
-        delete scrappedData.totalMembers;
+        var dataToBeScrapped = scrappedData;
+        delete dataToBeScrapped.totalMembers;
         console.log('stopExtractor-->',JSON.stringify({
             "project_id": selectedProject,
             "name": sourceName,
-            "file": scrappedData,
+            "file": dataToBeScrapped,
             "total_members": total_members       
         }))
-        clearInterval(scrollWait);
-        scrappedDataCompleted();
-    }
-
-    function scrappedDataCompleted(){
-        var completed = document.createElement('div')
-        completed.innerHTML = '<div class="modal" id="complete">'
-        +'    <div class="header">'
-        +'      <h3>Scrapped Data</h3>'
-        +'    </div>'
-        +'    <div class="content">'
-        +'      <form>'
-        +'        <label  id="count"> </label>'
-        +'        <div class="closeBtn">'
-        +'          <button id="okbtn">Ok</button>'
-        +'        </div>'
-        +'      </form>'
-        +'    </div>'
-        +'  </div>'
-
-        document.body.appendChild(completed);
-        document.getElementById('complete').style.display = 'block';
-        document.getElementById('okbtn').style['margin-left'] = '40%';
-        document.getElementById('okbtn').style['width'] = '15%';
-        document.getElementById('okbtn').style['height'] = '30px';
-
-        document.getElementById('count').innerText = 'Scrapped members count: '+scrappedData.total_scrapped_member;
-        let okbtn = document.getElementById('okbtn');
-        okbtn.addEventListener('click',function(event){ 
+        document.getElementById('title').innerText = "Done";
+        let progressTaskElement = document.getElementById('progressTask');
+        progressTaskElement.innerText = "TASK IS COMPLETED: "+ scrappedData.total_scrapped_member + " of " + total_members;
+        progressTaskElement.style.background = "#DEE9FF";
+        let viewProcessing = document.getElementById('viewProcessing');
+        document.getElementById('cancelProgress').style.display = "none";
+        viewProcessing.innerText = "View Audience";
+        viewProcessing.style.background = "";
+        viewProcessing.style.cursor = "pointer";
+        viewProcessing.style['margin-left'] = "25%";
+        viewProcessing.addEventListener('click', function(event){
             event.preventDefault();
-            document.getElementById('completed').style.display="none";
+            window.location.href = "https://discover360.app/audiences/projects/sources/" + selectedProject;
         })
+        clearInterval(scrollWait);
     }
-    
 
-    `).then((facebookMemberData) => {
-
-    })
+    Promise.resolve();
+    `)
 }
 
 
@@ -478,27 +622,34 @@ function addIconsScript(windowScreen) {
     window.$ = document.querySelectorAll.bind(document)
     document.addEventListener("mousemove", function () {
         if(window.location.href.includes('facebook.com/groups') && !document.getElementById('hammer') ){
-            var groupPostExtractor = document.createElement("img");
-            groupPostExtractor.setAttribute('src','https://img.icons8.com/emoji/452/hammer-and-pick.png');
-            groupPostExtractor.setAttribute('width','32px');
-            groupPostExtractor.setAttribute('id','hammer');
-            groupPostExtractor.setAttribute('height','32px');
-            groupPostExtractor.style['margin-bottom'] = '-6px';
-            groupPostExtractor.style['margin-left'] = '5px';
-           
-            var groupMemberExtractor = document.createElement("img");
-            groupMemberExtractor.setAttribute('src','https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/285/e-mail_1f4e7.png');
-            groupMemberExtractor.setAttribute('width','32px');
-            groupMemberExtractor.setAttribute('id','memberExtractor');
-            groupMemberExtractor.setAttribute('height','32px');
-            groupMemberExtractor.style['margin-bottom'] = '-6px';
-            groupMemberExtractor.style['margin-left'] = '10px';
-            
-            
-            if($('span.h6olsfn3') && $('span.h6olsfn3').length) $('span.h6olsfn3')[0].append(groupPostExtractor);
-            if($('span.h6olsfn3') && $('span.h6olsfn3').length) $('span.h6olsfn3')[0].append(groupMemberExtractor);
+            // let groupName1 = $('div.d6urw2fd>div:nth-child(1)>div:nth-child(1)>div:nth-child(2)>div>div>div>div');
+            // let groupName2 = $('div.ka73uehy>div:nth-child(2)>div>div>div>div:nth-child(1)>div:nth-child(2)>div>div>div>div')
+    
+            if($('span.h6olsfn3') && $('span.h6olsfn3').length){
 
-            const element = document.getElementById('memberExtractor');
+                var groupPostExtractor = document.createElement("img");
+                groupPostExtractor.setAttribute('src','https://img.icons8.com/emoji/452/hammer-and-pick.png');
+                groupPostExtractor.setAttribute('width','32px');
+                groupPostExtractor.setAttribute('id','hammer');
+                groupPostExtractor.setAttribute('height','32px');
+                groupPostExtractor.style['margin-bottom'] = '-6px';
+                groupPostExtractor.style['margin-left'] = '5px';
+                groupPostExtractor.style['cursor'] = 'pointer';
+
+                var groupMemberExtractor = document.createElement("img");
+                groupMemberExtractor.setAttribute('src','https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/285/e-mail_1f4e7.png');
+                groupMemberExtractor.setAttribute('width','32px');
+                groupMemberExtractor.setAttribute('id','memberExtractor');
+                groupMemberExtractor.setAttribute('height','32px');
+                groupMemberExtractor.style['margin-bottom'] = '-6px';
+                groupMemberExtractor.style['margin-left'] = '10px';
+                groupMemberExtractor.style['cursor'] = 'pointer';
+
+                $('span.h6olsfn3')[0].append(groupPostExtractor);
+                $('span.h6olsfn3')[0].append(groupMemberExtractor);
+    
+                const element = document.getElementById('memberExtractor');
+                const postElement = document.getElementById('hammer');
 
             if (element && element.getAttribute('listener') !== 'true') {
                  element.addEventListener('click', function (e) {
@@ -506,10 +657,14 @@ function addIconsScript(windowScreen) {
                     let memberButton = Array.prototype.slice.call(document.getElementsByTagName('a')).filter(el => el.textContent.includes('Members'));
                     if(memberButton && memberButton.length && memberButton[1])
                         memberButton[1].click();
-                    // selectProjectPopup(e);                             
                 });
+                postElement.addEventListener('click', function(event){
+                    var url = "https://mbasic.facebook.com" + window.location.href.split(window.location.hostname)[1];
+                    window.location.assign(url);
+                })
+            }    
             }
-
+            
         }
 
 
@@ -522,7 +677,8 @@ function addIconsScript(windowScreen) {
             memberPostExtractorIcon.setAttribute('height','25px');
             memberPostExtractorIcon.style['margin-bottom'] = '-6px';
             memberPostExtractorIcon.style['margin-left'] = '5px';
-           
+            memberPostExtractorIcon.style['cursor'] = 'pointer';
+
             var memberExtractorIcon = document.createElement("img");
             memberExtractorIcon.setAttribute('src','https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/285/e-mail_1f4e7.png');
             memberExtractorIcon.setAttribute('width','25px');
@@ -530,7 +686,8 @@ function addIconsScript(windowScreen) {
             memberExtractorIcon.setAttribute('height','25px');
             memberExtractorIcon.style['margin-bottom'] = '-6px';
             memberExtractorIcon.style['margin-left'] = '10px';
-            
+            memberExtractorIcon.style['cursor'] = 'pointer';
+
             memberElement[0].append(memberPostExtractorIcon);
             memberElement[0].append(memberExtractorIcon);
             const smallMemberExtractor = document.getElementById('memberExtractorSm');
@@ -541,12 +698,17 @@ function addIconsScript(windowScreen) {
                     selectProjectPopup(e);                             
                 });
             }
+            const mbasicIconElement = document.getElementById('hammerSm');  
+            mbasicIconElement.addEventListener('click', function(event){
+                var url = "https://mbasic.facebook.com" + window.location.href.split(window.location.hostname)[1];
+                window.location.assign(url);
+            })
         }
     })
     `);
 }
 
-function openPopupTokenIsNotSaved(windowScreen){
+function openPopupTokenIsNotSaved(windowScreen) {
     windowScreen.webContents.executeJavaScript(`
     var tokenEmptyModal = document.createElement('div')
     tokenEmptyModal.innerHTML = '<div class="modal" id="emptyModal">'
@@ -623,7 +785,7 @@ function getFacebookMembersDetail(windowScreen, session, store) {
                     requestBody.fb_api_req_friendly_name ==
                     "GroupsCometMembersPageNewForumMembersSectionRefetchQuery"
                 ) {
-                    windowScreen.webContents.executeJavaScript(`window.localStorage.setItem('variable', '${JSON.stringify(requestBody)}');`);
+                    windowScreen.webContents.executeJavaScript(`var variable = '${JSON.stringify(requestBody)}';`);
                 }
 
             }

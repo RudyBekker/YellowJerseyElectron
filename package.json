@@ -1,18 +1,19 @@
 {
-  "name": "YellowJersey",
-  "version": "1.1.1",
+  "name": "Discover360",
+  "version": "1.1.0",
   "private": true,
   "main": "public/electron.js",
-  "description": "Completed code from [Electron in Action].",
+  "author": "Arun Singh",
+  "description": "Discover360  Electron Application.",
   "license": "(MIT or GPL-3.0)",
   "dependencies": {
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.59",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
     "concurrently": "^6.0.0",
     "electron-is-dev": "^2.0.0",
     "electron-localstorage": "^1.0.5",
-    "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^8.0.0",
     "jquery": "^3.6.0",
     "node-fetch": "^2.6.1",
@@ -22,7 +23,6 @@
     "react-open-weather": "^1.1.1",
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.3",
-    "request": "^2.88.2",
     "wait-on": "^5.2.1",
     "web-vitals": "^1.0.1"
   },
@@ -37,9 +37,9 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "make-mac": "npx @electron-forge/cli make --platform darwin",
-    "make-linux": "npx @electron-forge/cli make --platform linux --targets deb",
+    "make-linux": "npx @electron-forge/cli make --platform linux",
     "make-windows": "npx @electron-forge/cli make --platform win32",
-    "make-uni": "npx @electron-forge/maker-zip"
+    "dist:windows": "electron-builder --windows"
   },
   "eslintConfig": {
     "extends": [
@@ -63,22 +63,37 @@
     "@electron-forge/cli": "^6.0.0-beta.59",
     "@electron-forge/maker-deb": "^6.0.0-beta.59",
     "@electron-forge/maker-rpm": "^6.0.0-beta.59",
-    "@electron-forge/maker-squirrel": "^6.0.0-beta.59",
     "@electron-forge/maker-zip": "^6.0.0-beta.59",
     "electron": "^12.0.0",
-    "electron-installer-windows": "^3.0.0",
-    "electron-packager": "^15.3.0",
-    "electron-winstaller": "^5.0.0"
+    "electron-builder": "^22.11.7"
+  },
+  "build": {
+    "appId": "com.example.electron-cra",
+    "files": [
+      "./build/**/*",
+      "public/electron.js"
+    ],
+    "directories": {
+      "buildResources": "dist"
+    },
+    "electronDownload": {
+      "cache": "./.electron-cache"
+    },
+    "win": {
+      "icon": "https://img.icons8.com/emoji/452/hammer-and-pick.png"
+    }
   },
   "config": {
-    "icon": "./public/hammer.png",
     "forge": {
+      "electronPackagerConfig": {
+        "icon": "https://img.icons8.com/emoji/452/hammer-and-pick.png"
+      },
       "packagerConfig": {},
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "yellowJersey"
+            "name": "electron_react_demo"
           }
         },
         {
@@ -89,10 +104,6 @@
         },
         {
           "name": "@electron-forge/maker-deb",
-          "config": {}
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
           "config": {}
         }
       ]

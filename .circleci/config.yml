@@ -1,16 +1,103 @@
-version: 2
+version: 2.1
 jobs:
-  build_windows:
+  build:
+    working_directory: ~/repo
     docker:
-      - image: electronuserland/builder:wine
+      - image: circleci/node:14
     steps:
       - checkout
-      - run: npx electron-packager . YellowJersey --overwrite --asar=true --platform=win32 --arch=ia32 --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName="YellowJersey"
-      - store_artifacts:
-          path: /root/project/build
+      
+      - run:
+          name: Setup NVM
+          command: |
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
+            echo 'export NVM_DIR=$HOME/.nvm' >> $BASH_ENV
+            echo 'source $NVM_DIR/nvm.sh' >> $BASH_ENV
+      
+      - run:
+          name: Setup Node
+          command: |
+            nvm install 14.15.0
+            nvm alias default 14.15.0
+            nvm use default
+            node -v
+            npm i -g npm@6.12.0
+            npm -v
+      
+      
+      - run:
+          name: node version
+          command: "node -v"
+      
+      
+      - run:
+          name: Update NPM
+          command: "sudo npm install -g npm"
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: Install Dependencies
+          command: npm install
 
-workflows:
-  version: 2
-  build:
-    jobs:
-      - build_windows
+      - run:
+          name: Install rpm package
+          command: sudo apt-get install rpm
+ 
+      - run:
+          name: Install electron-forge/cli package
+          command: sudo npm install @electron-forge/cli
+
+      - run:
+          name: Install electron-forge/maker-deb package
+          command: sudo npm install @electron-forge/maker-deb   
+
+      - run:
+          name: Install electron-forge/maker-rpm package
+          command: sudo npm install @electron-forge/maker-rpm   
+
+      - run:
+          name: Install electron-forge/maker-squirrel package
+          command: sudo npm install @electron-forge/maker-squirrel   
+
+      - run:
+          name: Install electron-forge/maker-zip package
+          command: sudo npm install @electron-forge/maker-zip   
+
+      - run:   
+          name: Installl electron-builder
+          command: npm i electron-builder
+
+      - run:   
+          name: Create electron build 
+          command: npm run build
+
+      - run:
+          name: Install dpkg and fakeroot
+          command: |
+            sudo apt-get update -y
+            sudo apt-get install -y dpkg fakeroot
+
+
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+
+    
+      - run:
+          name: Generate Builds window
+          command: npm run dist:windows
+
+          
+      - run:
+          name: Generate Builds Mac
+          command: npm run make-mac
+          
+      - run:
+          name: Generate Builds linux
+          command: npm run make-linux
+
+        
+
+      - store_artifacts:
+          path: ~/repo/out/make

@@ -7,10 +7,11 @@
 /out
 # testing
 /coverage
-
+/dist
 # production
 /build
-
+/.electron-cache
+.history
 # misc
 .DS_Store
 .env.local

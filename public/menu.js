@@ -1,72 +1,127 @@
-const { app, BrowserWindow, Menu } = require("electron");
-const mainProcess = require("./electron");
-const path = require("path");
-const Store = require("electron-store");
-const storage = require("electron-localstorage");
+const { app, BrowserWindow, Menu } = require('electron');
+const mainProcess = require('./electron');
+const path = require('path');
+const Store = require('electron-store');
+const storage = require('electron-localstorage');
 
-const template = [
-  {
-    label: "Email",
-    submenu: [
-      {
-        label: "Gmail",
-        click() {
-          loadWindowUrl("https://accounts.google.com/b/1/AddMailService");
-        },
-      },
-      {
-        label: "Outlook",
-        click() {
-          loadWindowUrl("https://outlook.office365.com/mail/");
-        },
-      },
-      {
-        label: "YJ Dash",
-        click() {
-          loadWindowUrl("https://dash.yellowjersey.dev/admin/");
-        },
-      },
-    ],
-  },
-  {
-    label: "YellowJersey",
-    submenu: [
-      {
-        label: "Dashboard",
-        click() {
-          loadWindowUrl("https://dash.yellowjersey.dev/admin/");
-        },
-      },
-      {
-        label: "Support",
-        click() {
-          loadWindowUrl("https://outlook.office365.com/mail/");
-        },
-      },
-      {
-        label: "Gmail",
-        click() {
-          loadWindowUrl("https://accounts.google.com/b/1/AddMailService");
-        },
-      },
-      {
-        label: "Outlook",
-        click() {
-          loadWindowUrl("https://outlook.office365.com/mail/");
-        },
-      },
-      {
-        label: "Exit",
-        click() {
-          app.quit();
-        },
-      },
-    ],
-  },
+var template = [
+    {
+        label: 'Dashboard', click() {
+            loadWindowUrl('https://discover360.app/dashboard')
+        }
+    },
+    {
+        label: 'Facebook', click() {
+            loadWindowUrl('https://www.facebook.com/groups/feed')
+        }
+    },
+    {
+        label: 'Setting', click() {
+            loadWindowUrl(`file://${path.join(__dirname, '/setting.html')}`);
+        }
+    },
+    {
+        label: 'Quit',
+        submenu: [
+            {
+                label: 'Exit',
+                click() {
+                    app.quit()
+                }
+            }
+        ]
+    }
 ];
 
-function loadWindowUrl(url) {
-  return mainProcess.loadRedirectUrl(url);
+if (process.platform === 'darwin') {
+    template = [
+        {
+            label: app.getName()
+        },
+        {
+            label: 'Dashboard',
+            submenu: [{
+                label: 'dashboard',
+                click() {
+                    loadWindowUrl('https://discover360.app/dashboard')
+                }
+            }]
+        },
+        {
+            label: 'Facebook',
+            submenu: [{
+                label: 'facebook',
+                click() {
+                    loadWindowUrl('https://www.facebook.com/groups/feed')
+                }
+            }]
+        },
+        {
+            label: 'Setting',
+            submenu: [{
+                label: 'setting',
+                click() {
+                    loadWindowUrl('http://localhost:3000/setting');
+                }
+            }]
+        },
+        {
+            label: "Edit",
+            submenu: [
+                {
+                    label: "Undo",
+                    accelerator: "CmdOrCtrl+Z",
+                    selector: "undo:"
+                },
+                {
+                    label: "Redo",
+                    accelerator: "Shift+CmdOrCtrl+Z",
+                    selector: "redo:"
+                },
+                {
+                    type: "separator"
+                },
+                {
+                    label: "Cut",
+                    accelerator: "CmdOrCtrl+X",
+                    selector: "cut:"
+                },
+                {
+                    label: "Copy",
+                    accelerator: "CmdOrCtrl+C",
+                    selector: "copy:"
+                },
+                {
+                    label: "Paste",
+                    accelerator: "CmdOrCtrl+V",
+                    selector: "paste:"
+                },
+                {
+                    label: "Select All",
+                    accelerator: "CmdOrCtrl+A",
+                    selector: "selectAll:"
+                }
+            ]
+        },
+        {
+            label: 'Quit',
+            submenu: [
+                {
+                    label: 'Exit',
+                    click() {
+                        app.quit()
+                    }
+                }
+            ]
+        }
+    ];
 }
 
+
+function loadWindowUrl(url) {
+    return mainProcess.loadRedirectUrl(url);
+}
+
+
 module.exports = Menu.buildFromTemplate(template);
+
