@@ -8,7 +8,6 @@ const isDev = require('electron-is-dev');
 const menu = require('./menu.js');
 var request = require('request');
 
-var facebookController = require('../src/Facebook/facebook.controller');
 var windowScreen = "";
 const store = new Store();
 
