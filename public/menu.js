@@ -40,7 +40,7 @@ var template = [
       {
         label: "Back",
         click() {
-          loadWindowUrl("javascript:history.go(-1)");
+          loadWindowUrl("https://app.yellowjersey.io/settings");
         },
       },
     ],
