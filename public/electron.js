@@ -11,6 +11,11 @@ var request = require('request');
 var windowScreen = "";
 const store = new Store();
 
+var mainWindow.webContents.on('new-window', function(e, url) {
+  e.preventDefault();
+  require('electron').shell.openExternal(url);
+});
+
 function createWindow() {
   // Create the browser window.
   // and load the index.html of the app.
