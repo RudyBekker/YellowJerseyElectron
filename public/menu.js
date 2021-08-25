@@ -56,6 +56,29 @@ var template = [
       },
     ],
   },
+  {
+    label: "View",
+    submenu: [
+      {
+        role: "reload",
+      },
+      {
+        label: "Back",
+        click() {
+          mainProcess.goBackPage();
+        },
+      },
+      {
+        label: "Forward",
+        click() {
+          mainProcess.goNextPage();
+        },
+      },
+      {
+        role: "togglefullscreen",
+      },
+    ],
+  },
 ];
 
 if (process.platform === "darwin") {
@@ -111,6 +134,29 @@ if (process.platform === "darwin") {
           click() {
             app.quit();
           },
+        },
+      ],
+    },
+    {
+      label: "View",
+      submenu: [
+        {
+          role: "reload",
+        },
+        {
+          label: "Back",
+          click() {
+            mainProcess.goBackPage();
+          },
+        },
+        {
+          label: "Forward",
+          click() {
+            mainProcess.goNextPage();
+          },
+        },
+        {
+          role: "togglefullscreen",
         },
       ],
     },

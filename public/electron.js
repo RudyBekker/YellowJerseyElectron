@@ -11,11 +11,6 @@ var request = require('request');
 var windowScreen = "";
 const store = new Store();
 
-var mainWindow.webContents.on('new-window', function(e, url) {
-  e.preventDefault();
-  require('electron').shell.openExternal(url);
-});
-
 function createWindow() {
   // Create the browser window.
   // and load the index.html of the app.
@@ -67,6 +62,11 @@ function createWindow() {
       message = message.replace('stopExtractor-->', '')
       await sendAudienDetailToDiscover(message);
     }
+    
+win.webContents.on('new-window', (event, url) => {
+  event.preventDefault()
+  win.loadURL(url)
+})
 
     if (message && message.includes('totalPostExtractor-->')) {
       message = message.replace('totalPostExtractor-->', '')
