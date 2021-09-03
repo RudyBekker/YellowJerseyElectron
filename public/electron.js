@@ -28,6 +28,8 @@ function createWindow() {
     },
     icon: path.join(__dirname, 'YellowJerseyLogo.png')
   });
+
+  //webFrame.setZoomFactor(1);
   windowScreen = win;
   win.loadURL('https://app.yellowjersey.io/login');
   const filter = {

@@ -46,6 +46,32 @@ var template = [
     ],
   },
   {
+    label: 'View',
+    submenu: [
+      { role: 'reload' },
+      { role: 'forceReload' },
+      { role: 'toggleDevTools' },
+      { type: 'separator' },
+      { role: 'resetZoom' },
+      { role: 'zoomIn' },
+      { role: 'zoomOut' },
+      { type: 'separator' },
+      { role: 'togglefullscreen' }
+    ]
+  },
+  {
+    label: "Back",
+    click() {
+      mainProcess.goBackPage();
+    },
+  },
+  {
+    label: "Forward",
+    click() {
+      mainProcess.goNextPage();
+    },
+  },
+  {
     label: "Quit",
     submenu: [
       {
@@ -53,29 +79,6 @@ var template = [
         click() {
           app.quit();
         },
-      },
-    ],
-  },
-  {
-    label: "View",
-    submenu: [
-      {
-        role: "reload",
-      },
-      {
-        label: "Back",
-        click() {
-          mainProcess.goBackPage();
-        },
-      },
-      {
-        label: "Forward",
-        click() {
-          mainProcess.goNextPage();
-        },
-      },
-      {
-        role: "togglefullscreen",
       },
     ],
   },
@@ -118,47 +121,33 @@ if (process.platform === "darwin") {
             loadWindowUrl("https://outlook.office365.com/mail/");
           },
         },
-        {
-          label: "Back",
-          click() {
-            window.history.back();
-          },
-        },
       ],
     },
     {
-      label: "Quit",
+      label: 'View',
       submenu: [
-        {
-          label: "Exit",
-          click() {
-            app.quit();
-          },
-        },
-      ],
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { role: 'toggleDevTools' },
+        { type: 'separator' },
+        { role: 'resetZoom' },
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' }
+      ]
     },
     {
-      label: "View",
-      submenu: [
-        {
-          role: "reload",
-        },
-        {
-          label: "Back",
-          click() {
-            mainProcess.goBackPage();
-          },
-        },
-        {
-          label: "Forward",
-          click() {
-            mainProcess.goNextPage();
-          },
-        },
-        {
-          role: "togglefullscreen",
-        },
-      ],
+      label: "Back",
+      click() {
+        mainProcess.goBackPage();
+      },
+    },
+    {
+      label: "Forward",
+      click() {
+        mainProcess.goNextPage();
+      },
     },
     {
       label: "Edit",
@@ -195,6 +184,17 @@ if (process.platform === "darwin") {
           label: "Select All",
           accelerator: "CmdOrCtrl+A",
           selector: "selectAll:",
+        },
+      ],
+    },
+    {
+      label: "Quit",
+      submenu: [
+        {
+          label: "Exit",
+          click() {
+            app.quit();
+          },
         },
       ],
     },
