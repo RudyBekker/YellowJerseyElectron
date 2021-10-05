@@ -48,6 +48,8 @@ var template = [
   {
     label: 'View',
     submenu: [
+      { role: 'back' },
+      { role: 'forward' },
       { role: 'reload' },
       { role: 'forceReload' },
       { role: 'toggleDevTools' },
@@ -126,6 +128,8 @@ if (process.platform === "darwin") {
     {
       label: 'View',
       submenu: [
+        { role: 'back' },
+        { role: 'forward' },
         { role: 'reload' },
         { role: 'forceReload' },
         { role: 'toggleDevTools' },
@@ -139,9 +143,6 @@ if (process.platform === "darwin") {
     },
     {
       label: "Back",
-      click() {
-        mainProcess.goBackPage();
-      },
     },
     {
       label: "Forward",
