@@ -66,18 +66,7 @@ app.on("activate", () => {
 });
 
 async function loadRedirectUrl(url) {
-  let isLoggedIn = store.get("isLoggedIn");
-  if ((url.includes("facebook") || url.includes("setting")) && !isLoggedIn)
-    return windowScreen.loadURL("https://discover360.app/login");
-  await windowScreen.webContents
-    .executeJavaScript(
-      `let token = window.localStorage.getItem('app-token'); Promise.resolve(token);`
-    )
-    .then((token) => {
-      if (token) store.set("token", token);
-      return windowScreen.loadURL(url);
-    })
-    .catch((error) => console.log(error));
+  return windowScreen.loadURL(url);
 }
 
 function goBackPage() {
@@ -88,6 +77,6 @@ function goNextPage() {
   return windowScreen.webContents.executeJavaScript(`history.forward()`);
 }
 
+exports.loadRedirectUrl = loadRedirectUrl;
 exports.goBackPage = goBackPage;
 exports.goNextPage = goNextPage;
-exports.loadWindowUrl = loadWindowUrl;

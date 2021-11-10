@@ -11,7 +11,7 @@ var template = [
       {
         label: "Admin Dashboard",
         click() {
-          loadWindowUrl("https://app.yellowjersey.io/settings");
+          loadWindowUrl("https://app.yellowjersey.io/login");
         },
       },
       {
